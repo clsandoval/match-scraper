@@ -28,22 +28,6 @@ for i in range(0,len(matches)-10,10):
     for m in match_data_list:
         if m['id'] not in leavers:
             json_str = json.dumps(m)
-          
             cur.execute("INSERT OR IGNORE INTO match_info VALUES ('{}','{}','{}')".format(m['id'],datetime.utcfromtimestamp(m['startDateTime']).strftime('%Y-%m-%d %H:%M:%S'),json_str))
     con.commit()
     time.sleep(1)
-#%% 
-filtered_matches = []
-for match_id in matches:
-    cur.execute("SELECT info from match_info")
-    z = cur.fetchall()
-    if len(z):
-        filtered_matches.append(json.loads(z[0][0]))
-
-#%%
-con = sqlite3.connect("herald.db")
-cur = con.cursor()
-con.commit()
-cur.close()
-# %%
-# %%
