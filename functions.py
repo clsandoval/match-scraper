@@ -59,6 +59,23 @@ def query_matches(matches, url = STRATZ_GRAPHQL_URL,start_query=start_graphql_qu
     return data
 
 
+def query_players(ids, url = STRATZ_GRAPHQL_URL, start_query=player_specific_graphql_query, end_query=player_specific_graphql_query_end, api_token=STRATZ_API_TOKEN):
+    headers = {"Authorization": f"Bearer {api_token}"}
+    url =url
+    query = start_query
+    for d in ids:
+        query += "{},".format(d)
+    query +=end_query
+    while True:
+        try:
+            r = requests.post(url, json={"query":query}, headers=headers)
+            break
+        except:
+            time.sleep(5)
+    data = json.loads(r.text) 
+    return data
+
+
 def query(url=OPENDOTA_URL,days = 1):
     public_matches = Table('public_matches')
     d_t = (datetime.now()-timedelta(days=days)).timestamp()
@@ -111,6 +128,24 @@ def construct_dict(top):
     for key,value in item_dict.items():
         max_dict[key] = [[0,0,''] for i in range(top)]
     return max_dict
+
+
+def construct_player_dict(top):
+    max_dict={
+        "minBehaviourScore":[[10000] for i in range(top)],
+        "matchCount":[[0] for i in range(top)],
+    }
+    for key,value in hero_dict.items():
+        max_dict[key] = {
+            "longestStreak":[[0] for i in range(top)],
+            "currentStreak":[[0] for i in range(top)],
+            "matchCount":[[0] for i in range(top)],
+            "kDA":[[0] for i in range(top)],
+            "duration":[[0] for i in range(top)]
+        }
+    return max_dict
+
+
 
 
 def get_matches_maxmin(d,match,double_racks_down,match_duration,match_id,match_rank,top):
@@ -210,6 +245,14 @@ def check_five_stack(match):
     return True
 
 
+def get_steam_ids(m):
+    ids = []
+    player_data = m['players']
+    for player in player_data:
+        ids.append((int(player['steamAccountId']),))
+    return ids
+
+
 def get_maximums_per_player(match_data,top=5,five_stacks=False):
     max_dict=construct_dict(top)
     for match in match_data:
@@ -239,7 +282,7 @@ def get_maximums_per_player(match_data,top=5,five_stacks=False):
                 items = get_items(player)
                 player_item_dict = get_num_items(items)
                 if (player['dotaPlus']) != None:
-                    if player['dotaPlus']['level'] == 30 and match_duration > 3500:
+                    if player['dotaPlus']['level'] == 30:
                         if max_dict['dotaPlus'][-1][1] == match_id:
                                 max_dict['dotaPlusMultiple'].append([player['dotaPlus']['level'],match_id,match_duration,hero_name])
                         max_dict['dotaPlus'].append([player['dotaPlus']['level'],match_id,match_duration,hero_name])

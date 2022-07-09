@@ -27,7 +27,13 @@ for i in range(0,len(matches)-10,10):
     leavers = stratz_remove_leavers(data)
     for m in match_data_list:
         if m['id'] not in leavers:
+            ids = get_steam_ids(m)
+            cur.executemany("insert or ignore into steam_ids values (?)",ids)
             json_str = json.dumps(m)
             cur.execute("INSERT OR IGNORE INTO match_info VALUES ('{}','{}','{}')".format(m['id'],datetime.utcfromtimestamp(m['startDateTime']).strftime('%Y-%m-%d %H:%M:%S'),json_str))
     con.commit()
     time.sleep(1)
+
+# %%
+
+# %%

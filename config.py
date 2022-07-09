@@ -47,6 +47,7 @@ end_graphql_query ="""]) {
         id
         startDateTime
         lobbyType
+        gameMode
         actualRank
         analysisOutcome
         durationSeconds
@@ -56,6 +57,7 @@ end_graphql_query ="""]) {
     		barracksStatusRadiant
         firstBloodTime
         players{
+        steamAccountId
         partyId
         item0Id
         item1Id
@@ -103,3 +105,28 @@ end_graphql_query ="""]) {
         }
       }
     }"""
+
+
+player_specific_graphql_query="""{
+  player(steamAccountIds:["""
+
+player_specific_graphql_query_end = """]) {
+		winCount
+    matchCount
+    behaviorScore
+    heroesPerformance(take: 130){
+      hero {
+        name
+        id
+      }
+      winCount
+      matchCount
+      kDA
+    }
+    heroStreaks{
+      heroId
+      longestStreak
+      currentStreak
+    }
+  } 
+}"""

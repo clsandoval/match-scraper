@@ -8,6 +8,7 @@ con = sqlite3.connect("herald.db")
 cur = con.cursor()
 cur.execute("SELECT info, date from match_info")
 z = cur.fetchall()
+con.commit()
 cur.close()
 # %%
 filtered_matches = [json.loads(d[0]) for d in z]
