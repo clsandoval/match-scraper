@@ -57,6 +57,9 @@ end_graphql_query ="""]) {
     		barracksStatusRadiant
         firstBloodTime
         players{
+        steamAccount{
+          isAnonymous
+        }
         steamAccountId
         partyId
         item0Id
@@ -108,9 +111,10 @@ end_graphql_query ="""]) {
 
 
 player_specific_graphql_query="""{
-  player(steamAccountIds:["""
+  players(steamAccountIds:["""
 
 player_specific_graphql_query_end = """]) {
+    steamAccountId
 		winCount
     matchCount
     behaviorScore
@@ -122,6 +126,7 @@ player_specific_graphql_query_end = """]) {
       winCount
       matchCount
       kDA
+      duration
     }
     heroStreaks{
       heroId
