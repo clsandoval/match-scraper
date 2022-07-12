@@ -14,7 +14,7 @@ cur.close()
 # %%
 filtered_matches = [json.loads(d[0]) for d in z]
 # %%
-get_match_dict(filtered_matches,top=20, five_stacks=False, game_mode = "SINGLE_DRAFT")
+get_match_dict(filtered_matches,top=20, five_stacks=False,game_mode="RANDOM_DRAFT" )
 # %%
 con = sqlite3.connect("herald.db")
 cur = con.cursor()

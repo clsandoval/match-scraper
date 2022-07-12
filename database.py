@@ -6,7 +6,7 @@ from config import *
 from data import *
 from datetime import datetime
 #%%
-json_data = query(days=6)
+json_data = query(days=1)
 #%%
 con = sqlite3.connect("herald.db")
 cur = con.cursor()
@@ -14,12 +14,14 @@ matches = ([i['match_id'] for i in json_data['rows']])
 cur.execute("SELECT matchId from match_info")
 z = cur.fetchall()
 parsed_ids = [d[0] for d in z]
-ids = [_id for _id in matches if _id not in parsed_ids]
-print(len(matches))
-for i in range(0,len(matches)-10,10):
+s = [_id for _id in matches if _id not in parsed_ids]
+print(len(s))
+for i in range(0,len(s)-10,10):
     try:
+        print(i)
+        print(s[i:i+10])
         data = query_stratz(
-            matches[i:i+10],
+            s[i:i+10],
             start_query=start_graphql_query,
             end_query=end_graphql_query
         )
@@ -46,10 +48,11 @@ z = cur.fetchall()
 parsed_ids = [d[0] for d in z]
 ids = [_id for _id in steam_ids if _id not in parsed_ids]
 print(len(ids))
-for i in range(0, len(ids),1):
+for i in range(0, len(ids)-5,5):
     try:
+        print(ids[i:i+5])
         player_data = query_stratz(
-            [ids[i]],
+            ids[i:i+5],
             start_query=player_specific_graphql_query,
             end_query=player_specific_graphql_query_end
         )

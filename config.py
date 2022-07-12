@@ -57,6 +57,15 @@ end_graphql_query ="""]) {
     		barracksStatusRadiant
         firstBloodTime
         players{
+          playbackData{
+            abilityLearnEvents{
+              time
+              abilityId
+              level
+              levelObtained
+              isTalent
+            }
+          }
         steamAccount{
           isAnonymous
         }

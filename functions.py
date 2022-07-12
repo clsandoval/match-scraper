@@ -357,7 +357,7 @@ def get_min_behaviour(max_dict,behaviour,_id,top):
     return max_dict  
 
 
-def get_hero_matches_kda_maximums(_id,max_dict,hero_id,hero_name,hero_matches,hero_kda,top):
+def get_hero_matches_kda_maximums(_id,max_dict,hero_id,hero_name,hero_matches,hero_kda,hero_duration,top):
     i = 0
     while True:
         if  i > top-1:
@@ -376,6 +376,16 @@ def get_hero_matches_kda_maximums(_id,max_dict,hero_id,hero_name,hero_matches,he
             max_dict[hero_id]['kDA'].insert(i,[hero_kda,_id,hero_name])
             if len(max_dict[hero_id]['kDA'])> top:
                 max_dict[hero_id]['kDA'] = max_dict[hero_id]['kDA'][:-1]
+            break
+        i+=1
+    i = 0
+    while True:
+        if  i > top-1:
+            break
+        if hero_duration > max_dict[hero_id]['duration'][i][0] and hero_matches > 100:
+            max_dict[hero_id]['duration'].insert(i,[hero_duration,_id,hero_name])
+            if len(max_dict[hero_id]['duration'])> top:
+                max_dict[hero_id]['duration'] = max_dict[hero_id]['duration'][:-1]
             break
         i+=1
     return max_dict
@@ -410,6 +420,9 @@ def get_player_dict(player_data,top=5,five_stacks=False):
     max_dict=construct_player_dict(top)
     for player in player_data:
         _id, wins, matches, behaviour = get_playerstats(player)
+        if behaviour == None:
+            print("skip")
+            continue
         max_dict = get_max_matches(max_dict,matches, _id,top)
         max_dict = get_min_behaviour(max_dict,behaviour, _id,top)
         for hero in player['heroesPerformance']:
@@ -420,7 +433,8 @@ def get_player_dict(player_data,top=5,five_stacks=False):
             hero_wins = hero['winCount']
             hero_matches = hero['matchCount']
             hero_kda = hero['kDA']
-            max_dict = get_hero_matches_kda_maximums(_id,max_dict,hero_id,hero_name,hero_matches,hero_kda,top)        
+            hero_duration = hero['duration']
+            max_dict = get_hero_matches_kda_maximums(_id,max_dict,hero_id,hero_name,hero_matches,hero_kda,hero_duration,top)        
         for hero in player['heroStreaks']:
             hero_id = hero['heroId']
             if hero_id ==0:
