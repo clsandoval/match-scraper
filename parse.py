@@ -3,7 +3,9 @@ import json,zlib
 import sqlite3
 from functions import *
 from data import *
-from datetime import datetime
+from datetime import datetime,timedelta
+now = datetime.now().timestamp()
+replay_expiry_limit = (datetime.now() - timedelta(days=6)).timestamp()
 #%%
 con = sqlite3.connect("herald.db")
 cur = con.cursor()
@@ -14,7 +16,9 @@ cur.close()
 # %%
 filtered_matches = [json.loads(d[0]) for d in z]
 # %%
-get_match_dict(filtered_matches,top=20, five_stacks=False,game_mode="RANDOM_DRAFT" )
+print(len(filtered_matches))
+# %%
+get_match_dict(filtered_matches,top=20, five_stacks=False,time_now = replay_expiry_limit,max_rank = 20)
 # %%
 con = sqlite3.connect("herald.db")
 cur = con.cursor()

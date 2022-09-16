@@ -1,4 +1,5 @@
 #%%
+from os import kill
 import urllib 
 import pypika
 import json
@@ -64,11 +65,13 @@ def query_stratz(
         query += "{},".format(m)
     query +=end_query
     while True:
+        
         try:
             r = requests.post(url, json={"query":query}, headers=headers)
             break
         except:
-            time.sleep(5)
+            print("Stratz timeout, retrying in 1 second")
+            time.sleep(1)
     data = json.loads(r.text) 
     return data
 
@@ -177,15 +180,16 @@ def get_matches_maxmin(
 
 
 def get_matchstats(match):
-        radiant_racks = match['barracksStatusRadiant']
-        dire_racks = match['barracksStatusDire']
-        match_duration = match['durationSeconds']
-        match_rank = match['actualRank']
-        match_id = match['id']
-        double_racks_down = False
-        if radiant_racks !=63 and dire_racks != 63:
-            double_racks_down = True
-        return radiant_racks, dire_racks, match_duration, match_rank, match_id, double_racks_down
+    radiant_racks = match['barracksStatusRadiant']
+    dire_racks = match['barracksStatusDire']
+    match_duration = match['durationSeconds']
+    match_rank = match['actualRank']
+    match_id = match['id']
+    start_time = match['startDateTime']
+    double_racks_down = False
+    if radiant_racks !=63 and dire_racks != 63:
+        double_racks_down = True
+    return radiant_racks, dire_racks, match_duration, match_rank, match_id, double_racks_down,start_time
 
 
 def get_max_items(
@@ -242,8 +246,9 @@ def get_max_kills(
     while True:
         if  i > top-1:
             break
-        if max_kills > max_dict['maxKills'][i][0]:
-            max_dict['maxKills'].insert(i,[max_kills,match_duration,match_id,match_rank])
+        kill_density = max_kills/match_duration
+        if kill_density > max_dict['maxKills'][i][0] and match_duration > 4500:
+            max_dict['maxKills'].insert(i,[kill_density,match_duration,match_id,match_rank])
             if len(max_dict['maxKills'])> top:
                 max_dict['maxKills'] = max_dict['maxKills'][:-1]
             break
@@ -277,7 +282,7 @@ def get_steam_ids(m):
     return ids
 
 
-def get_match_dict(match_data,top=5,five_stacks=False,game_mode="ALL_PICK_RANKED"):
+def get_match_dict(match_data,top=5,five_stacks=False,game_mode="ALL_PICK_RANKED", time_now = None, max_rank = None):
     max_dict=construct_dict(top)
     for match in match_data:
         if "lobbyType" not in match:
@@ -287,8 +292,10 @@ def get_match_dict(match_data,top=5,five_stacks=False,game_mode="ALL_PICK_RANKED
         if five_stacks:
             if not check_five_stack(match):
                 continue
-        radiant_racks, dire_racks, match_duration, match_rank, match_id, double_racks_down = get_matchstats(match)
-        if int(match_rank) <20 and double_racks_down:
+        radiant_racks, dire_racks, match_duration, match_rank, match_id, double_racks_down, start_time = get_matchstats(match)
+        if start_time < time_now:
+            continue
+        if int(match_rank) <max_rank and double_racks_down:
             max_dict = get_matches_maxmin(max_dict,match,double_racks_down,match_duration,match_id,match_rank,top)
             player_data = match['players']
             match_item_dict = {}
@@ -301,7 +308,7 @@ def get_match_dict(match_data,top=5,five_stacks=False,game_mode="ALL_PICK_RANKED
                     match_kills += stats['killCount']
                 if stats['deathCount']!= None:
                     player_deaths= stats['deathCount']
-                if match_duration > 3500:
+                if match_duration > 2000:
                     max_dict = get_max_deaths(max_dict,player_deaths,top,match_id,match_rank,match_duration)
                 items = get_items(player)
                 player_item_dict = get_num_items(items)
@@ -424,7 +431,8 @@ def get_player_dict(player_data,top=5,five_stacks=False):
             print("skip")
             continue
         max_dict = get_max_matches(max_dict,matches, _id,top)
-        max_dict = get_min_behaviour(max_dict,behaviour, _id,top)
+        if matches > 2000:
+            max_dict = get_min_behaviour(max_dict,behaviour, _id,top)
         for hero in player['heroesPerformance']:
             hero_id = hero['hero']['id']
             if hero_id == 0:

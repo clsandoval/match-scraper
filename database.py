@@ -6,7 +6,7 @@ from config import *
 from data import *
 from datetime import datetime
 #%%
-json_data = query(days=1)
+json_data = query(days=3)
 #%%
 con = sqlite3.connect("herald.db")
 cur = con.cursor()
@@ -16,12 +16,11 @@ z = cur.fetchall()
 parsed_ids = [d[0] for d in z]
 s = [_id for _id in matches if _id not in parsed_ids]
 print(len(s))
-for i in range(0,len(s)-10,10):
+for i in range(0,len(s)-5,5):
+    print(i)
     try:
-        print(i)
-        print(s[i:i+10])
         data = query_stratz(
-            s[i:i+10],
+            s[i:i+5],
             start_query=start_graphql_query,
             end_query=end_graphql_query
         )
@@ -36,7 +35,6 @@ for i in range(0,len(s)-10,10):
             json_str = json.dumps(m)
             cur.execute("INSERT OR IGNORE INTO match_info VALUES ('{}','{}','{}')".format(m['id'],datetime.utcfromtimestamp(m['startDateTime']).strftime('%Y-%m-%d %H:%M:%S'),json_str))
     con.commit()
-    time.sleep(1)
 # %%
 con = sqlite3.connect("herald.db")
 cur = con.cursor()
@@ -69,8 +67,9 @@ cur.close()
 # %%
 con = sqlite3.connect("herald.db")
 cur = con.cursor()
-#cur.execute("delete from ")
-z = cur.fetchall()
+#cur.execute("delete from")
+#z = cur.fetchall()
 con.commit()
+#con.execute("VACUUM")
 cur.close()
 # %%
